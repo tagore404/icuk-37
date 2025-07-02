@@ -1,5 +1,17 @@
-FROM openjdk:8
-ADD jarstaging/com/stalin/demo-workshop/2.0.1/demo-workshop-2.0.1.jar demo-workshop.jar
-ENTRYPOINT ["java", "-jar", "demo-workshop.jar"]
+# Stage 1: Build the app
+FROM maven:3.9.6-eclipse-temurin-17 AS builder
 
+WORKDIR /app
 
+COPY . .
+
+RUN mvn clean package -DskipTests
+
+# Stage 2: Run the app
+FROM eclipse-temurin:17-jre
+
+WORKDIR /app
+
+COPY --from=builder /app/server/target/*.jar app.jar
+
+ENTRYPOINT ["java", "-jar", "app.jar"]
